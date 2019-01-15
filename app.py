@@ -8,6 +8,7 @@ Starting Project : 2019.1.4
 
 '''
 
+
 import werkzeug.routing
 import flask_compress
 import flask_reggie
@@ -24,9 +25,8 @@ import logging
 import random
 
 from func import *
-from views.easter_egg import *
 
-r_ver = 'v3.0.8-master-100'
+r_ver = 'v3.0.8-stable-99'
 c_ver = ''.join(re.findall('[0-9]', r_ver))
 
 print('version : ' + r_ver)
@@ -77,7 +77,6 @@ class EverythingConverter(werkzeug.routing.PathConverter):
 
 app.jinja_env.filters['md5_replace'] = md5_replace
 app.jinja_env.filters['load_lang'] = load_lang
-app.jinja_env.filters['load_langs'] = load_langs
 
 app.url_map.converters['everything'] = EverythingConverter
 
@@ -184,25 +183,6 @@ if not os.path.exists('image'):
 if not os.path.exists('views'):
     os.makedirs('views')
 
-if os.getenv('NAMU_HOST') != None:
-    rep_host = os.getenv('NAMU_HOST')
-else:
-    curs.execute('select data from other where name = "host"')
-    rep_data = curs.fetchall()
-    if not rep_data:
-        while 1:
-            print('host [0.0.0.0] : ', end = '')
-            rep_host = input()
-            if rep_host:
-                curs.execute('insert into other (name, data) values ("host", ?)', [rep_host])
-                break
-            else:
-                pass
-    else:
-        rep_host = rep_data[0][0]
-    
-        print('host : ' + str(rep_host))
-
 if os.getenv('NAMU_PORT') != None:
     rep_port = os.getenv('NAMU_PORT')
 else:
@@ -211,9 +191,11 @@ else:
     if not rep_data:
         while 1:
             print('port : ', end = '')
+        
             rep_port = int(input())
             if rep_port:
                 curs.execute('insert into other (name, data) values ("port", ?)', [rep_port])
+    
                 break
             else:
                 pass
@@ -237,7 +219,7 @@ try:
 
             curs.execute('insert into other (name, data) values ("robot", "User-agent: *\nDisallow: /\nAllow: /$\nAllow: /w/")')
         
-        print('robots.txt have created')
+        print('robots.txt create')
 except:
     pass
 
@@ -275,17 +257,6 @@ else:
     rep_language = rep_data[0][0]
     
     print('language : ' + str(rep_language))
-
-curs.execute('select data from other where name = "adsense"')
-adsense_result = curs.fetchall()
-if not adsense_result:
-    curs.execute('insert into other (name, data) values ("adsense", "False")')
-    curs.execute('insert into other (name, data) values ("adsense_code", "")')
-
-curs.execute('select data from other where name = "easter_egg"')
-sc_egg_result = curs.fetchall()
-if not sc_egg_result:
-    curs.execute('insert into other (name, data) values ("easter_egg", "True")')
 
 ask_this = [[['markup', 'markup'], ['namumark']], [['encryption method', 'encode'], ['sha256', 'sha3', 'bcrypt']]]
 for ask_data in ask_this:
@@ -336,7 +307,6 @@ if back_time != 0:
 else:
     print('back up state : turn off')
 
-print('\n------ daemon started ------')
 conn.commit()
 
 @app.route('/del_alarm')
@@ -356,7 +326,7 @@ def alarm():
     curs.execute("select data, date from alarm where name = ? order by date desc", [ip_check()])
     data_list = curs.fetchall()
     if data_list:
-        data = '<a href="/del_alarm">(' + load_langs('common', 'delete') + ')</a><hr class=\"main_hr\">' + data
+        data = '<a href="/del_alarm">(' + load_lang('delete') + ')</a><hr class=\"main_hr\">' + data
 
         for data_one in data_list:
             data += '<li>' + data_one[0] + ' (' + data_one[1] + ')</li>'
@@ -366,10 +336,9 @@ def alarm():
     data += '</ul>'
 
     return easy_minify(flask.render_template(skin_check(), 
-        imp = [load_langs('common', 'notice'), wiki_set(), custom(), other2([0, 0])],
+        imp = [load_lang('alarm'), wiki_set(), custom(), other2([0, 0])],
         data = data,
-        menu = [['user', load_langs('common', 'user')]],
-        script = load_script()
+        menu = [['user', load_lang('user')]]
     ))
 
 @app.route('/<regex("inter_wiki|(?:edit|email|name)_filter"):tools>')
@@ -380,21 +349,20 @@ def inter_wiki(tools = None):
     if tools == 'inter_wiki':
         del_link = 'del_inter_wiki'
         plus_link = 'plus_inter_wiki'
-        title = load_langs('filter', 'interwiki_list')
+        title = load_lang('interwiki') + ' ' + load_lang('list')
         div = ''
 
         curs.execute('select title, link from inter')
     elif tools == 'email_filter':
         del_link = 'del_email_filter'
         plus_link = 'plus_email_filter'
-        title = load_langs('filter', 'email_filter_list')
+        title = 'email ' + load_lang('filter') + ' ' + load_lang('list')
         div =   '''
                 <ul>
                     <li>gmail.com</li>
                     <li>naver.com</li>
                     <li>daum.net</li>
                     <li>hanmail.net</li>
-                    <li>hanmail2.net</li>
                 </ul>
                 '''
 
@@ -402,14 +370,14 @@ def inter_wiki(tools = None):
     elif tools == 'name_filter':
         del_link = 'del_name_filter'
         plus_link = 'plus_name_filter'
-        title = load_langs('filter', 'id_filter_list')
+        title = load_lang('id') + ' ' + load_lang('filter') + ' ' + load_lang('list')
         div = ''
 
         curs.execute("select html from html_filter where kind = 'name'")
     else:
         del_link = 'del_edit_filter'
         plus_link = 'manager/9'
-        title = load_langs('filter', 'edit_filter_list')
+        title = load_lang('edit') + ' ' + load_lang('filter') + ' ' + load_lang('list')
         div = ''
 
         curs.execute("select name from filter")
@@ -427,23 +395,22 @@ def inter_wiki(tools = None):
                 div += '<li>' + data[0]
 
             if admin == 1:
-                div += ' <a href="/' + del_link + '/' + url_pas(data[0]) + '">(' + load_langs('common', 'delete') + ')</a>'
+                div += ' <a href="/' + del_link + '/' + url_pas(data[0]) + '">(' + load_lang('delete') + ')</a>'
 
             div += '</li>'
 
         div += '</ul>'
 
         if admin == 1:
-            div += '<hr class=\"main_hr\"><a href="/' + plus_link + '">(' + load_langs('common', 'add') + ')</a>'
+            div += '<hr class=\"main_hr\"><a href="/' + plus_link + '">(' + load_lang('plus') + ')</a>'
     else:
         if admin == 1:
-            div += '<a href="/' + plus_link + '">(' + load_langs('common', 'add') + ')</a>'
+            div += '<a href="/' + plus_link + '">(' + load_lang('plus') + ')</a>'
 
     return easy_minify(flask.render_template(skin_check(), 
         imp = [title, wiki_set(), custom(), other2([0, 0])],
         data = div,
-        menu = [['other', load_langs('common', 'etc')]],
-        script = load_script()
+        menu = [['other', load_lang('other')]]
     ))
 
 @app.route('/<regex("del_(?:inter_wiki|(?:edit|email|name)_filter)"):tools>/<name>')
@@ -505,9 +472,9 @@ def plus_inter(tools = None, name = None):
             stat = ''
 
         if tools == 'plus_inter_wiki':
-            title = load_langs('filter', 'interwiki_list')
+            title = load_lang('interwiki') + ' ' + load_lang('plus')
             form_data = '''
-                        <input placeholder="''' + load_langs('common', 'name') + '''" type="text" name="title">
+                        <input placeholder="''' + load_lang('name') + '''" type="text" name="title">
                         <hr class=\"main_hr\">
                         <input placeholder="link" type="text" name="link">
                         '''
@@ -528,13 +495,13 @@ def plus_inter(tools = None, name = None):
                 time_check = ''
                 time_data = ''
 
-            title = load_langs('common', 'edit_filter_add')
+            title = load_lang('edit') + ' ' + load_lang('filter') + ' ' + load_lang('plus')
             form_data = '''
-                        <input placeholder="''' + load_langs('time', 'sec') + '''" name="second" type="text" value="''' + html.escape(time_data) + '''">
+                        <input placeholder="''' + load_lang('second') + '''" name="second" type="text" value="''' + html.escape(time_data) + '''">
                         <hr class=\"main_hr\">
-                        <input ''' + stat + ''' type="checkbox" ''' + time_check + ''' name="limitless"> ''' + load_langs('time', 'limitless') + '''
+                        <input ''' + stat + ''' type="checkbox" ''' + time_check + ''' name="limitless"> ''' + load_lang('limitless') + '''
                         <hr class=\"main_hr\">
-                        <input ''' + stat + ''' placeholder="''' + load_langs('common', 'regex') + '''" name="content" value="''' + html.escape(textarea) + '''" type="text">
+                        <input ''' + stat + ''' placeholder="''' + load_lang('regex') + '''" name="content" value="''' + html.escape(textarea) + '''" type="text">
                         '''
         elif tools == 'plus_name_filter':
             title = load_lang('id') + ' ' + load_lang('filter') + ' ' + load_lang('plus')
@@ -552,8 +519,7 @@ def plus_inter(tools = None, name = None):
                         <button ''' + stat + ''' type="submit">''' + load_lang('plus') + '''</button>
                     </form>
                     ''',
-            menu = [['other', load_lang('other')], [re.sub('^plus_', '', tools), load_lang('list')]],
-            script = load_script()
+            menu = [['other', load_lang('other')], [re.sub('^plus_', '', tools), load_lang('list')]]
         ))
 
 @app.route('/setting')
@@ -576,12 +542,11 @@ def setting(num = 0):
         return easy_minify(flask.render_template(skin_check(), 
             imp = [load_lang('setting'), wiki_set(), custom(), other2([0, 0])],
             data = '<h2>' + load_lang('list') + '</h2><ul>' + li_data + '</ul>',
-            menu = [['manager', load_lang('admin')]],
-            script = load_script()
+            menu = [['manager', load_lang('admin')]]
         ))
     elif num == 1:
-        i_list = ['name', 'logo', 'frontpage', 'license', 'upload', 'skin', 'edit', 'reg', 'ip_view', 'back_up', 'port', 'key', 'update', 'email_have', 'discussion', 'encode', 'host']
-        n_list = ['wiki', '', 'FrontPage', 'CC 0', '2', '', 'normal', '', '', '0', '3000', 'test', 'stable', '', 'normal', 'sha256', '0.0.0.0']
+        i_list = ['name', 'logo', 'frontpage', 'license', 'upload', 'skin', 'edit', 'reg', 'ip_view', 'back_up', 'port', 'key', 'update', 'email_have', 'discussion', 'encode']
+        n_list = ['wiki', '', 'FrontPage', 'CC 0', '2', '', 'normal', '', '', '0', '3000', 'test', 'stable', '', 'normal', 'sha256']
         
         if flask.request.method == 'POST':
             i = 0
@@ -714,11 +679,6 @@ def setting(num = 0):
                             <hr class=\"main_hr\">
                             <input type="checkbox" name="email_have" ''' + ch_3 + '''> must have email {<a href="/setting/5">must set google imap</a>}
                             <hr class=\"main_hr\">
-                            <span>''' + load_lang('host') + '''</span>
-                            <br>
-                            <br>
-                            <input placeholder="''' + load_lang('host') + '''" type="text" name="host" value="''' + html.escape(d_list[16]) + '''">
-                            <hr class=\"main_hr\">
                             <span>''' + load_lang('port') + '''</span>
                             <br>
                             <br>
@@ -742,8 +702,7 @@ def setting(num = 0):
                             <button id="save" type="submit">''' + load_lang('save') + '''</button>
                         </form>
                         ''',
-                menu = [['setting', load_lang('setting')]],
-                script = load_script()
+                menu = [['setting', load_lang('setting')]]
             ))
     elif num == 2:
         if flask.request.method == 'POST':
@@ -792,8 +751,7 @@ def setting(num = 0):
                             <button id="save" type="submit">''' + load_lang('save') + '''</button>
                         </form>
                         ''',
-                menu = [['setting', load_lang('setting')]],
-                script = load_script()
+                menu = [['setting', load_lang('setting')]]
             ))
     elif num == 3 or num == 4:
         if flask.request.method == 'POST':
@@ -838,8 +796,7 @@ def setting(num = 0):
                             <button id="save" type="submit">''' + load_lang('save') + '''</button>
                         </form>
                         ''',
-                menu = [['setting', load_lang('setting')]],
-                script = load_script()
+                menu = [['setting', load_lang('setting')]]
             ))
     elif num == 5:
         if flask.request.method == 'POST':
@@ -884,8 +841,7 @@ def setting(num = 0):
                             <button id="save" type="submit">''' + load_lang('save') + '''</button>
                         </form>
                         ''',
-                menu = [['setting', load_lang('setting')]],
-                script = load_script()
+                menu = [['setting', load_lang('setting')]]
             ))
     elif num == 6:
         i_list = ['recaptcha', 'sec_re', 'g_email', 'g_pass']
@@ -948,8 +904,7 @@ def setting(num = 0):
                             <button id="save" type="submit">''' + load_lang('save') + '''</button>
                         </form>
                         ''',
-                menu = [['setting', load_lang('setting')]],
-                script = load_script()
+                menu = [['setting', load_lang('setting')]]
             ))
     else:
         return redirect('/')
@@ -968,8 +923,7 @@ def not_close_topic():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('open') + ' ' + load_lang('discussion') + ' ' + load_lang('list'), wiki_set(), custom(), other2([0, 0])],
         data = div,
-        menu = [['manager', load_lang('admin')]],
-        script = load_script()
+        menu = [['manager', load_lang('admin')]]
     ))
 
 @app.route('/image/<name>')
@@ -1021,8 +975,7 @@ def acl_list():
     return easy_minify(flask.render_template(skin_check(), 
         imp = ['acl ' + load_lang('document') + ' ' + load_lang('list'), wiki_set(), custom(), other2([0, 0])],
         data = div,
-        menu = [['other', load_lang('other')]],
-        script = load_script()
+        menu = [['other', load_lang('other')]]
     ))
 
 @app.route('/admin_plus/<name>', methods=['POST', 'GET'])
@@ -1105,8 +1058,7 @@ def admin_plus(name = None):
                         <button id="save" ''' + state +  ''' type="submit">''' + load_lang('save') + '''</button>
                     </form>
                     ''',
-            menu = [['manager', load_lang('admin')]],
-            script = load_script()
+            menu = [['manager', load_lang('admin')]]
         ))        
         
 @app.route('/admin_list')
@@ -1127,8 +1079,7 @@ def admin_list():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('admin') + ' ' + load_lang('list'), wiki_set(), custom(), other2([0, 0])],
         data = div,
-        menu = [['other', load_lang('other')]],
-        script = load_script()
+        menu = [['other', load_lang('other')]]
     ))
         
 @app.route('/hidden/<everything:name>')
@@ -1198,8 +1149,7 @@ def user_log():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('recent') + ' ' + load_lang('subscriber'), wiki_set(), custom(), other2([0, 0])],
         data = list_data,
-        menu = 0,
-        script = load_script()
+        menu = 0
     ))
 
 @app.route('/admin_log')
@@ -1223,8 +1173,7 @@ def admin_log():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('recent') + ' ' + load_lang('authority'), wiki_set(), custom(), other2([0, 0])],
         data = list_data,
-        menu = 0,
-        script = load_script()
+        menu = 0
     ))
 
 @app.route('/give_log')
@@ -1244,8 +1193,7 @@ def give_log():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('admin_group') + ' ' + load_lang('list'), wiki_set(), custom(), other2([0, 0])],
         data = list_data,
-        menu = [['other', load_lang('other')]],
-        script = load_script()
+        menu = [['other', load_lang('other')]]
     ))
 
 @app.route('/indexing')
@@ -1303,8 +1251,7 @@ def restart():
                         <button type="submit">''' + load_lang('restart') + '''</button>
                     </form>
                     ''',
-            menu = [['manager', load_lang('admin')]],
-            script = load_script()
+            menu = [['manager', load_lang('admin')]]
         ))       
 
 @app.route('/update')
@@ -1349,71 +1296,17 @@ def now_update():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('update'), wiki_set(), custom(), other2([0, 0])],
         data = 'auto update is not support. <a href="https://github.com/2DU/opennamu">(github)</a>',
-        menu = [['manager/1', load_lang('admin')]],
-        script = load_script()
+        menu = [['manager/1', load_lang('admin')]]
     ))
 
-@app.route('/oauth_settings', methods=['GET', 'POST'])
+#OAuth Developing (hoparkgo9ma)
+@app.route('/oauth_settings')
 def oauth_settings():
     if admin_check(None, 'oauth_settings') != 1:
         return re_error('/error/3')
 
-    if flask.request.method == 'POST':
-        try:
-            facebook_client_id = flask.request.form['facebook_client_id']
-            facebook_client_secret = flask.request.form['facebook_client_secret']
-            naver_client_id = flask.request.form['naver_client_id']
-            naver_client_secret = flask.request.form['naver_client_secret']
-        except:
-            return easy_minify(flask.render_template(skin_check(),
-                imp = [load_lang('inter_error'), wiki_set(), custom(), other2([0, 0])],
-                data =  '''
-                        <p>''' + load_lang('inter_error_detail') + '''</p>
-                        <hr>
-                        <code>ie_no_data_required</code>
-                        <p>''' + load_lang('ie_no_data_required') + '''</p>
-                        ''',
-                menu = [['other', load_lang('other')]],
-                script = load_script()
-            ))
-        with open('oauthsettings.json', 'r', encoding='utf-8') as f:
-            legacy = json.loads(f.read())
-        with open('oauthsettings.json', 'w', encoding='utf-8') as f:
-            f.write(
-"""{
-    "_README" : {
-        "en" : \"""" + legacy['_README']['en'] + """\",
-        "ko" : \"""" + legacy['_README']['ko'] + """\",
-        "support" : """ + str(legacy['_README']['support']).replace("'", '"') + """
-    },
-    "publish_url" : \"""" + legacy['publish_url'] + """\",
-    "facebook" : {
-        "client_id" : \"""" + facebook_client_id + """\",
-        "client_secret" : \"""" + facebook_client_secret + """\"
-    },
-    "naver" : {
-        "client_id" : \"""" + naver_client_id + """\",
-        "client_secret" : \"""" + naver_client_secret + """\"
-    }
-}"""
-            )
-        return flask.redirect('/oauth_settings')
-
     oauth_supported = load_oauth('_README')['support']
-
-    body_content = ''
-    body_content += '''
-    <script>function check_value (target) {
-        target_box = document.getElementById(target.id + "_box");
-        if (target.value !== "") {
-            target_box.checked = true;
-        } else {
-            target_box.checked = false;
-        } }
-    </script>'''
-
-    init_js = ''
-    body_content += '<form method="post">'
+    body_content = '<form method="post">'
 
     for i in range(len(oauth_supported)):
         oauth_data = load_oauth(oauth_supported[i])
@@ -1423,16 +1316,12 @@ def oauth_settings():
             elif j == 1:
                 load_target = 'secret'
 
-            init_js += 'check_value(document.getElementById("{}_client_{}"));'.format(oauth_supported[i], load_target)
-
             body_content += '''
-                            <input id="{}_client_{}_box" type="checkbox" disabled>
-                            <input placeholder="{}_client_{}" id="{}_client_{}" name="{}_client_{}" value="{}" type="text" onChange="check_value(this)" style="width: 80%;">
+                            <input id="{}_client_{}" type="checkbox">
+                            <input placeholder="{}_client_{}" name="{}_client_{}" value="{}" type="text" style="width: 80%;">
                             <hr>
                             '''.format(
                                 oauth_supported[i],
-                                load_target,
-                                oauth_supported[i], 
                                 load_target, 
                                 oauth_supported[i], 
                                 load_target, 
@@ -1442,85 +1331,13 @@ def oauth_settings():
                             )
     
     body_content += '<button id="save" type="submit">' + load_lang('save') + '</button></form>'
-    body_content += '<script>' + init_js + '</script>'
     
     return easy_minify(flask.render_template(skin_check(),
         imp = [load_lang('oauth_settings'), wiki_set(), custom(), other2([0, 0])],
         data = body_content,
-        menu = [['other', load_lang('other')]],
-        script = load_script()
+        menu = [['other', load_lang('other')]]
     ))
 
-@app.route('/adsense_settings', methods=['GET', 'POST'])
-def adsense_settings():
-    if admin_check(None, 'oauth_settings') != 1:
-        return re_error('/error/3')
-    
-    if flask.request.method == 'POST':
-        try:
-            adsense_enabled = flask.request.form.get('adsense_enabled')
-            adsense_code = flask.request.form['adsense_code']
-        except:
-            return easy_minify(flask.render_template(skin_check(),
-                imp = [load_lang('inter_error'), wiki_set(), custom(), other2([0, 0])],
-                data =  '''
-                        <p>''' + load_lang('inter_error_detail') + '''</p>
-                        <hr>
-                        <code>ie_no_data_required</code>
-                        <p>''' + load_lang('ie_no_data_required') + '''</p>
-                        ''',
-                menu = [['other', load_lang('other')]],
-                script = load_script()
-            ))
-        
-        if adsense_enabled == 'on':
-            curs.execute('update other set data = "True" where name = "adsense"')
-        else:
-            curs.execute('update other set data = "False" where name = "adsense"')
-        curs.execute('update other set data = ? where name = "adsense_code"', [adsense_code])
-        conn.commit()
-        return redirect('/adsense_settings')
-
-    body_content = ''
-
-    curs.execute('select data from other where name = "adsense"')
-    adsense_enabled = curs.fetchall()[0][0]
-
-    curs.execute('select data from other where name = "adsense_code"')
-    adsense_code = curs.fetchall()[0][0]
-
-    template = '''
-        <form action="" accept-charset="utf-8" method="post">
-            <div class="form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" name="adsense_enabled" type="checkbox" %_html:adsense_enabled_%>
-                    %_lang:adsense_enabled_%
-                </label>
-            </div>
-            <hr>
-            <div class="form-group">
-                <textarea class="form-control" id="adsense_code" name="adsense_code" rows="12">%_html:adsense_code_%</textarea>
-            </div>
-            <button type="submit" value="publish">%_lang:save_%</button>
-        </form>
-    '''
-    
-    if adsense_enabled == 'True':
-        template = template.replace('%_html:adsense_enabled_%', 'checked')
-    else:
-        template = template.replace('%_html:adsense_enabled_%', '')
-    template = template.replace('%_lang:adsense_enabled_%', load_lang('adsense') + ' ' + load_lang('enable'))
-    template = template.replace('%_lang:save_%', load_lang('save'))
-    template = template.replace('%_html:adsense_code_%', adsense_code)
-
-    body_content += template
-
-    return easy_minify(flask.render_template(skin_check(),
-        imp = [load_lang('adsense') + ' ' + load_lang('setting'), wiki_set(), custom(), other2([0, 0])],
-        data = body_content,
-        menu = [['other', load_lang('other')]],
-        script = load_script()
-    ))
         
 @app.route('/xref/<everything:name>')
 def xref(name = None):
@@ -1552,8 +1369,7 @@ def xref(name = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [name, wiki_set(), custom(), other2([' (' + load_lang('backlink') + ')', 0])],
         data = div,
-        menu = [['w/' + url_pas(name), load_lang('document')]],
-        script = load_script()
+        menu = [['w/' + url_pas(name), load_lang('document')]]
     ))
 
 @app.route('/please')
@@ -1580,8 +1396,7 @@ def please():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('need') + ' ' + load_lang('document'), wiki_set(), custom(), other2([0, 0])],
         data = div,
-        menu = [['other', load_lang('other')]],
-        script = load_script()
+        menu = [['other', load_lang('other')]]
     ))
         
 @app.route('/recent_discuss')
@@ -1623,8 +1438,7 @@ def recent_discuss():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('recent') + ' ' + load_lang('discussion'), wiki_set(), custom(), other2([m_sub, 0])],
         data = div,
-        menu = 0,
-        script = load_script()
+        menu = 0
     ))
 
 @app.route('/block_log')
@@ -1758,8 +1572,7 @@ def block_log(name = None, tool = None, tool2 = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('recent') + ' ' + load_lang('ban'), wiki_set(), custom(), other2([sub, 0])],
         data = div,
-        menu = menu,
-        script = load_script()
+        menu = menu
     ))
             
 @app.route('/search', methods=['POST'])
@@ -1825,8 +1638,7 @@ def deep_search(name = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [name, wiki_set(), custom(), other2([' (' + load_lang('search') + ')', 0])],
         data = div,
-        menu = 0,
-        script = load_script()
+        menu = 0
     ))
          
 @app.route('/raw/<everything:name>')
@@ -1870,8 +1682,7 @@ def raw_view(name = None, sub_title = None, num = None):
         return easy_minify(flask.render_template(skin_check(), 
             imp = [v_name, wiki_set(), custom(), other2([sub, 0])],
             data = p_data,
-            menu = menu,
-            script = load_script()
+            menu = menu
         ))
     else:
         return redirect('/w/' + url_pas(name))
@@ -1948,8 +1759,7 @@ def revert(name = None):
                         <button type="submit">''' + load_lang('revert') + '''</button>
                     </form>
                     ''',
-            menu = [['history/' + url_pas(name), load_lang('history')], ['recent_changes', load_lang('recent') + ' ' + load_lang('change')]],
-            script = load_script()
+            menu = [['history/' + url_pas(name), load_lang('history')], ['recent_changes', load_lang('recent') + ' ' + load_lang('change')]]
         ))
 
 @app.route('/edit/<everything:name>', methods=['POST', 'GET'])
@@ -2065,8 +1875,7 @@ def edit(name = None):
                         <button id="preview" type="submit" formaction="/preview/''' + url_pas(name) + action + '">' + load_lang('preview') + '''</button>
                     </form>
                     ''',
-            menu = [['w/' + url_pas(name), load_lang('document')], ['delete/' + url_pas(name), load_lang('delete')], ['move/' + url_pas(name), load_lang('move')]],
-            script = load_script()
+            menu = [['w/' + url_pas(name), load_lang('document')], ['delete/' + url_pas(name), load_lang('delete')], ['move/' + url_pas(name), load_lang('move')]]
         ))
 
 @app.route('/preview/<everything:name>', methods=['POST'])
@@ -2105,8 +1914,7 @@ def preview(name = None):
                 </form>
                 <hr class=\"main_hr\">
                 ''' + end_data,
-        menu = [['w/' + url_pas(name), load_lang('document')]],
-        script = load_script()
+        menu = [['w/' + url_pas(name), load_lang('document')]]
     ))
         
 @app.route('/delete/<everything:name>', methods=['POST', 'GET'])
@@ -2161,8 +1969,7 @@ def delete(name = None):
                         <button type="submit">''' + load_lang('delete') + '''</button>
                     </form>
                     ''',
-            menu = [['w/' + url_pas(name), load_lang('document')]],
-            script = load_script()
+            menu = [['w/' + url_pas(name), load_lang('document')]]
         ))            
             
 @app.route('/move_data/<everything:name>')
@@ -2185,8 +1992,7 @@ def move_data(name = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [name, wiki_set(), custom(), other2([' (' + load_lang('move') + ' ' + load_lang('history') + ')', 0])],
         data = data,
-        menu = [['history/' + url_pas(name), load_lang('history')]],
-        script = load_script()
+        menu = [['history/' + url_pas(name), load_lang('history')]]
     ))        
             
 @app.route('/move/<everything:name>', methods=['POST', 'GET'])
@@ -2287,8 +2093,7 @@ def move(name = None):
                         <button type="submit">''' + load_lang('move') + '''</button>
                     </form>
                     ''',
-            menu = [['w/' + url_pas(name), load_lang('document')]],
-            script = load_script()
+            menu = [['w/' + url_pas(name), load_lang('document')]]
         ))
             
 @app.route('/other')
@@ -2328,8 +2133,7 @@ def other():
                     <li>''' + load_lang('normal_version') + ' : <a id="out_link" href="https://github.com/2DU/opennamu/blob/master/version.md">' + r_ver + '''</a></li>
                 </ul>
                 ''',
-    menu = 0,
-    script = load_script()
+    menu = 0
     ))
     
 @app.route('/manager', methods=['POST', 'GET'])
@@ -2353,12 +2157,6 @@ def manager(num = 1):
     }
     
     if num == 1:
-        curs.execute('select data from other where name = "easter_egg"')
-        result = curs.fetchall()[0][0]
-        if result == 'True':
-            easter_egg_status = 'checked'
-        else:
-            easter_egg_status = ''
         return easy_minify(flask.render_template(skin_check(), 
             imp = [load_lang('admin') + ' ' + load_lang('tool'), wiki_set(), custom(), other2([0, 0])],
             data =  '''
@@ -2390,18 +2188,9 @@ def manager(num = 1):
                         <li><a href="/restart">''' + load_lang('server') + ' ' + load_lang('restart') + '''</a></li>
                         <li><a href="/update">''' + load_lang('update') + '''</a></li>
                         <li><a href="/oauth_settings">''' + load_lang('oauth_settings') + '''</a></li>
-                        <li><a href="/adsense_settings">''' + load_lang('adsense') + ' ' + load_lang('setting') + '''</a></li>
                     </ul>
-                    <h2>Easter Egg</h2>
-                    <div>
-                        <input type="checkbox" id="enable-easter-egg"''' + easter_egg_status + '''>
-                        <label for="enable-easter-egg">enable easteregg</label>
-                        <li><a href="/egg/wiki.json">wiki.json</a></li>
-                        <p id="easter-egg-status"></p>
-                    </div>
-                    ''' + easter_egg_config_js,
-            menu = [['other', load_lang('other')]],
-            script = load_script()
+                    ''',
+            menu = [['other', load_lang('other')]]
         ))
     elif not num - 1 > len(title_list):
         if flask.request.method == 'POST':
@@ -2424,8 +2213,7 @@ def manager(num = 1):
                             <button type="submit">''' + load_lang('move') + '''</button>
                         </form>
                         ''',
-                menu = [['manager', load_lang('admin')]],
-                script = load_script()
+                menu = [['manager', load_lang('admin')]]
             ))
     else:
         return redirect('/')
@@ -2497,8 +2285,7 @@ def title_index():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('all') + ' ' + load_lang('document'), wiki_set(), custom(), other2([sub, 0])],
         data = data,
-        menu = [['other', load_lang('other')]],
-        script = load_script()
+        menu = [['other', load_lang('other')]]
     ))
         
 @app.route('/topic/<everything:name>/sub/<sub>/b/<int:num>')
@@ -2666,8 +2453,7 @@ def topic_admin(name = None, sub = None, num = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('discussion') + ' ' + load_lang('tool'), wiki_set(), custom(), other2([' (' + str(num) + ')', 0])],
         data = ban,
-        menu = [['topic/' + url_pas(name) + '/sub/' + url_pas(sub) + '#' + str(num), load_lang('discussion')]],
-        script = load_script()
+        menu = [['topic/' + url_pas(name) + '/sub/' + url_pas(sub) + '#' + str(num), load_lang('discussion')]]
     ))
 
 @app.route('/topic/<everything:name>/sub/<sub>', methods=['POST', 'GET'])
@@ -2866,8 +2652,7 @@ def topic(name = None, sub = None):
         return easy_minify(flask.render_template(skin_check(), 
             imp = [name, wiki_set(), custom(), other2([' (' + load_lang('discussion') + ')', 0])],
             data = '<h2 id="topic_top_title">' + sub + '</h2>' + all_data + data,
-            menu = [['topic/' + url_pas(name), load_lang('list')]],
-            script = load_script()
+            menu = [['topic/' + url_pas(name), load_lang('list')]]
         ))
 
 @app.route('/tool/<name>')
@@ -2897,8 +2682,7 @@ def user_tool(name = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [name, wiki_set(), custom(), other2([' (' + load_lang('tool') + ')', 0])],
         data = data,
-        menu = [['topic/' + url_pas(name), load_lang('list')]],
-        script = load_script()
+        menu = [['topic/' + url_pas(name), load_lang('list')]]
     ))
         
 @app.route('/topic/<everything:name>', methods=['POST', 'GET'])
@@ -2966,8 +2750,7 @@ def close_topic_list(name = None, tool = None):
         return easy_minify(flask.render_template(skin_check(), 
             imp = [name, wiki_set(), custom(), other2([' (' + sub + ')', 0])],
             data =  '<form method="post">' + div + plus + '</form>',
-            menu = menu,
-            script = load_script()
+            menu = menu
         ))
         
 @app.route('/login', methods=['POST', 'GET'])
@@ -3017,12 +2800,13 @@ def login():
         
         return redirect('/user')  
     else:
-        oauth_content = '<link rel="stylesheet" href="/views/main_css/oauth.css"><div class="oauth-wrapper"><ul class="oauth-list">'
+        oauth_content = '<div class="oauth-wrapper"><ul class="oauth-list">'
         oauth_supported = load_oauth('_README')['support']
         for i in range(len(oauth_supported)):
             oauth_data = load_oauth(oauth_supported[i])
             if oauth_data['client_id'] != '' and oauth_data['client_secret'] != '':
                 oauth_content +=    '''
+                                    <link rel="stylesheet" href="/views/main_css/oauth.css">
                                     <li>
                                         <a href="/oauth/{}/init">
                                             <div class="oauth-btn oauth-btn-{}">
@@ -3056,8 +2840,7 @@ def login():
                         <span>''' + load_lang('http_warring') + '''</span>
                     </form>
                     ''',
-            menu = [['user', load_lang('user')]],
-            script = load_script()
+            menu = [['user', load_lang('user')]]
         ))
 
 @app.route('/oauth/<regex("naver|facebook"):platform>/<regex("init|callback"):func>', methods=['GET', 'POST'])
@@ -3086,15 +2869,13 @@ def login_oauth(platform = None, func = None):
             return easy_minify(flask.render_template(skin_check(), 
                 imp = [load_lang('login'), wiki_set(), custom(), other2([0, 0])], 
                 data = load_lang('oauth_disabled'), 
-                menu = [['user', load_lang('user')]],
-                script = load_script()
+                menu = [['user', load_lang('user')]]
             ))
         elif publish_url == 'https://':
             return easy_minify(flask.render_template(skin_check(), 
                 imp = [load_lang('login'), wiki_set(), custom(), other2([0, 0])], 
                 data = load_lang('oauth_settings_not_found'), 
-                menu = [['user', load_lang('user')]],
-                script = load_script()
+                menu = [['user', load_lang('user')]]
             ))
 
         referrer_re = re.compile(r'(?P<host>^(https?):\/\/([^\/]+))\/(?P<refer>[^\/?]+)')
@@ -3126,8 +2907,7 @@ def login_oauth(platform = None, func = None):
                         <code>ie_wrong_callback</code>
                         <p>''' + load_lang('ie_wrong_callback') + '''</p>
                         ''',
-                menu = [['user', load_lang('user')]],
-                script = load_script()
+                menu = [['user', load_lang('user')]]
             ))
 
         if platform == 'naver':
@@ -3249,10 +3029,10 @@ def change_password():
             oauth_provider = load_oauth('_README')['support']
             oauth_content = '<ul>'
             for i in range(len(oauth_provider)):
-                curs.execute('select name, picture from oauth_conn where wiki_id = ? and provider = ?', [flask.session['id'], oauth_provider[i]])
+                curs.execute('select * from oauth_conn where wiki_id = ? and provider = ?', [flask.session['id'], oauth_provider[i]])
                 oauth_data = curs.fetchall()
                 if len(oauth_data) == 1:
-                    oauth_content += '<li>{} - {}</li>'.format(oauth_provider[i], load_lang('connection') + load_lang('oauth_conn_done') + ': <img src="{}" width="17px" height="17px">{}'.format(oauth_data[0][1], oauth_data[0][0]))
+                    oauth_content += '<li>{} - {}</li>'.format(oauth_provider[i], load_lang('connection') + load_lang('oauth_conn_done') + ': <img src="{}" width="17px" height="17px">{}'.format(oauth_data[0][5], oauth_data[0][4]))
                 else:
                     oauth_content += '<li>{} - {}</li>'.format(oauth_provider[i], load_lang('connection') + load_lang('oauth_conn_not') + '. <a href="/oauth/{}/init">{}</a>'.format(oauth_provider[i], load_lang('oauth_conn_new')))
             
@@ -3290,8 +3070,7 @@ def change_password():
                             <span>''' + load_lang('http_warring') + '''</span>
                         </form>
                         ''',
-                menu = [['user', load_lang('user')]],
-                script = load_script()
+                menu = [['user', load_lang('user')]]
             ))
     else:
         pass
@@ -3383,8 +3162,7 @@ def user_check(name = None):
     return easy_minify(flask.render_template(skin_check(),    
         imp = [load_lang('check'), wiki_set(), custom(), other2([0, 0])],
         data = div,
-        menu = [['manager', load_lang('admin')]],
-        script = load_script()
+        menu = [['manager', load_lang('admin')]]
     ))
                 
 @app.route('/register', methods=['POST', 'GET'])
@@ -3491,8 +3269,7 @@ def register():
                         <span>''' + load_lang('http_warring') + '''</span>
                     </form>
                     ''',
-            menu = [['user', load_lang('user')]],
-            script = load_script()
+            menu = [['user', load_lang('user')]]
         ))
 
 @app.route('/<regex("need_email|pass_find"):tool>', methods=['POST', 'GET'])
@@ -3500,7 +3277,7 @@ def need_email(tool = 'pass_find'):
     if flask.request.method == 'POST':
         if tool == 'need_email':
             if 'c_id' in flask.session:
-                main_email = ['naver.com', 'gmail.com', 'daum.net', 'hanmail.net', 'hanmail2.net']
+                main_email = ['naver.com', 'gmail.com', 'daum.net', 'hanmail.net']
                 data = re.search('@([^@]+)$', flask.request.form.get('email', ''))
                 if data:
                     data = data.groups()[0]
@@ -3543,8 +3320,7 @@ def need_email(tool = 'pass_find'):
                             <button type="submit">''' + load_lang('save') + '''</button>
                         </form>
                         ''',
-                menu = [['user', load_lang('user')]],
-                script = load_script()
+                menu = [['user', load_lang('user')]]
             ))
         else:
             return easy_minify(flask.render_template(skin_check(),    
@@ -3558,8 +3334,7 @@ def need_email(tool = 'pass_find'):
                             <button type="submit">''' + load_lang('save') + '''</button>
                         </form>
                         ''',
-                menu = [['user', load_lang('user')]],
-                script = load_script()
+                menu = [['user', load_lang('user')]]
             ))
 
 @app.route('/<regex("check_key|check_pass_key"):tool>', methods=['POST', 'GET'])
@@ -3626,8 +3401,7 @@ def check_key(tool = 'check_pass_key'):
                             <br>
                             ''' + load_lang('password') + ' : ' + pw + '''
                             ''',
-                    menu = [['user', load_lang('user')]],
-                    script = load_script()
+                    menu = [['user', load_lang('user')]]
                 ))
             else:
                 return redirect('/pass_find')
@@ -3641,8 +3415,7 @@ def check_key(tool = 'check_pass_key'):
                         <button type="submit">''' + load_lang('save') + '''</button>
                     </form>
                     ''',
-            menu = [['user', load_lang('user')]],
-            script = load_script()
+            menu = [['user', load_lang('user')]]
         ))
            
 @app.route('/logout')
@@ -3729,8 +3502,7 @@ def user_ban(name = None):
                         <button type="submit">''' + now + '''</button>
                     </form>
                     ''',
-            menu = [['manager', load_lang('admin')]],
-            script = load_script()
+            menu = [['manager', load_lang('admin')]]
         ))            
                 
 @app.route('/acl/<everything:name>', methods=['POST', 'GET'])
@@ -3838,8 +3610,7 @@ def acl(name = None):
                         <button type="submit" ''' + check_ok + '''>acl ''' + load_lang('edit') + '''</button>
                     </form>
                     ''',
-            menu = [['w/' + url_pas(name), load_lang('document')], ['manager', load_lang('admin')]],
-            script = load_script()
+            menu = [['w/' + url_pas(name), load_lang('document')], ['manager', load_lang('admin')]]
         ))
             
 @app.route('/admin/<name>', methods=['POST', 'GET'])
@@ -3903,8 +3674,7 @@ def user_admin(name = None):
                         <button type="submit">''' + load_lang('edit') + '''</button>
                     </form>
                     ''',
-            menu = [['manager', load_lang('admin')]],
-            script = load_script()
+            menu = [['manager', load_lang('admin')]]
         ))
     
 @app.route('/diff/<everything:name>')
@@ -3930,8 +3700,7 @@ def diff_data(name = None):
             return easy_minify(flask.render_template(skin_check(), 
                 imp = [name, wiki_set(), custom(), other2([' (' + load_lang('compare') + ')', 0])],
                 data = '<pre>' + result + '</pre>',
-                menu = [['history/' + url_pas(name), load_lang('history')]],
-                script = load_script()
+                menu = [['history/' + url_pas(name), load_lang('history')]]
             ))
 
     return redirect('/history/' + url_pas(name))
@@ -3949,8 +3718,7 @@ def down(name = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [name, wiki_set(), custom(), other2([' (' + load_lang('under') + ')', 0])],
         data = div,
-        menu = [['w/' + url_pas(name), load_lang('document')]],
-        script = load_script()
+        menu = [['w/' + url_pas(name), load_lang('document')]]
     ))
 
 @app.route('/w/<everything:name>')
@@ -4100,25 +3868,15 @@ def read_view(name = None):
 
     div = end_data + div
             
-    curs.execute("select data from other where name = 'adsense'")
-    adsense_enabled = curs.fetchall()[0][0]
-    adsense_code = '<div align="center" style="display: block; margin-bottom: 10px;">%_adsense_code_%</div>'
-    if adsense_enabled == 'True':
-        curs.execute("select data from other where name = 'adsense_code'")
-        adsense_code = adsense_code.replace('%_adsense_code_%', curs.fetchall()[0][0])
-    else:
-        adsense_code = adsense_code.replace('%_adsense_code_%', '')
     curs.execute("select data from other where name = 'body'")
     body = curs.fetchall()
     if body:
         div = body[0][0] + '<hr class=\"main_hr\">' + div
-    
-    div = adsense_code + '<div>' + div + '</div>'
+
     return easy_minify(flask.render_template(skin_check(), 
         imp = [flask.request.args.get('show', name), wiki_set(), custom(), other2([sub + acl, r_date])],
         data = div,
-        menu = menu,
-        script = load_script()
+        menu = menu
     )), response_data
 
 @app.route('/topic_record/<name>')
@@ -4171,8 +3929,7 @@ def user_topic_list(name = None):
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('discussion') + ' ' + load_lang('record'), wiki_set(), custom(), other2([sub, 0])],
         data = div,
-        menu = [['other', load_lang('other')], ['user', load_lang('user')], ['count/' + url_pas(name), load_lang('count')], ['record/' + url_pas(name), load_lang('record')]],
-        script = load_script()
+        menu = [['other', load_lang('other')], ['user', load_lang('user')], ['count/' + url_pas(name), load_lang('count')], ['record/' + url_pas(name), load_lang('record')]]
     ))
 
 @app.route('/recent_changes')
@@ -4395,8 +4152,7 @@ def recent_changes(name = None, tool = 'record'):
         return easy_minify(flask.render_template(skin_check(), 
             imp = [title, wiki_set(), custom(), other2([sub, 0])],
             data = div,
-            menu = menu,
-            script = load_script()
+            menu = menu
         ))
     
 @app.route('/upload', methods=['GET', 'POST'])
@@ -4486,8 +4242,7 @@ def upload():
                         <button id="save" type="submit">''' + load_lang('save') + '''</button>
                     </form>
                     ''',
-            menu = [['other', load_lang('other')]],
-            script = load_script()
+            menu = [['other', load_lang('other')]]
         ))  
         
 @app.route('/user')
@@ -4586,8 +4341,7 @@ def user_info():
                 </li>
                 </ul>
                 ''',
-        menu = 0,
-        script = load_script()
+        menu = 0
     ))
 
 @app.route('/watch_list')
@@ -4610,8 +4364,7 @@ def watch_list():
     return easy_minify(flask.render_template(skin_check(), 
         imp = [load_lang('watchlist') + ' ' + load_lang('list'), wiki_set(), custom(), other2([0, 0])],
         data = div,
-        menu = [['manager', load_lang('admin')]],
-        script = load_script()
+        menu = [['manager', load_lang('admin')]]
     ))
 
 @app.route('/watch_list/<everything:name>')
@@ -4682,8 +4435,7 @@ def custom_head_view():
                         <button id="save" type="submit">''' + load_lang('save') + '''</button>
                     </form>
                     ''',
-            menu = [['user', load_lang('user')]],
-            script = load_script()
+            menu = [['user', load_lang('user')]]
         ))
 
 @app.route('/count')
@@ -4716,8 +4468,7 @@ def count_edit(name = None):
                     <li><a href="/topic_record/''' + url_pas(that) + '''">''' + load_lang('discussion') + '''</a> : ''' + str(t_data) + '''</a></li>
                 </ul>
                 ''',
-        menu = [['user', load_lang('user')]],
-        script = load_script()
+        menu = [['user', load_lang('user')]]
     ))
         
 @app.route('/random')
@@ -4811,34 +4562,6 @@ def main_file(data = None):
     else:
         return redirect('/w/' + url_pas(wiki_set(2)))
 
-@app.route('/request/egg_config', methods=['GET', 'POST'])
-def request_egg_config():
-    if admin_check(None, 'update') != 1:
-       flask.abort(401)
-    request_config = flask.request.form['data']
-    request_config = request_config.replace(request_config[0], request_config[0].upper())
-    curs.execute('update other set data = ? where name = "easter_egg"', [request_config])
-    conn.commit()
-    return flask.jsonify({"request": "response", "data": "done", "now": request_config})
-
-@app.route('/request/egg')
-def request_egg():
-    curs.execute('select data from other where name = "easter_egg"')
-    result = curs.fetchall()[0][0]
-    if result == 'True':
-        return easter_egg[random.randint(0, len(easter_egg) - 1)]
-    else:
-        return ''
-
-@app.route('/egg/wiki.json')
-def wiki_json():
-    curs.execute('select title, data from data')
-    result = curs.fetchall()
-    wiki_json = {}
-    for i in range(len(result)):
-        wiki_json[result[i][0]] = result[i][1]
-    return str(wiki_json)
-
 @app.errorhandler(404)
 def error_404(e):
     return redirect('/w/' + url_pas(wiki_set(2)))
@@ -4846,5 +4569,5 @@ def error_404(e):
 if __name__=="__main__":
     app.secret_key = rep_key
     http_server = tornado.httpserver.HTTPServer(tornado.wsgi.WSGIContainer(app))
-    http_server.listen(rep_port, address=rep_host)
+    http_server.listen(rep_port)
     tornado.ioloop.IOLoop.instance().start()
