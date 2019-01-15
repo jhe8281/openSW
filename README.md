@@ -1,6 +1,6 @@
 # openSW
 ====
-openNAMU(3.0.8-a)
+[![openNAMU(3.0.8-a]
 [![Python 3.5 이상의 버전 필요](https://img.shields.io/badge/python-3.5%20or%20higher-blue.svg)](https://python.org)
 [![라이선스](https://img.shields.io/badge/license-BSD%203--Clause-lightgrey.svg)](./LICENSE)
 
