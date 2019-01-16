@@ -1,5 +1,5 @@
-# openSW
-![openNAMU 3.0.8-a](https://img.shields.io/badge/openNAMU-3.0.8-a-brightgreen.svg)
+# 개인위키 프로젝트
+[![openNAMU 3.0.8-a](https://img.shields.io/badge/openNAMU-3.0.8-a.svg)
 [![Python 3.5 이상의 버전 필요](https://img.shields.io/badge/python-3.5%20or%20higher-blue.svg)](https://python.org)
 [![라이선스](https://img.shields.io/badge/license-BSD%203--Clause-lightgrey.svg)](./LICENSE)
 
