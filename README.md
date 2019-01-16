@@ -3,7 +3,29 @@
 [![Python 3.5 이상의 버전 필요](https://img.shields.io/badge/python-3.5%20or%20higher-blue.svg)](https://python.org)
 [![라이선스](https://img.shields.io/badge/license-BSD%203--Clause-lightgrey.svg)](./LICENSE)
 
+파이썬 기반의 위키엔진인 openNAMU (3.0.8-a) 로 구축된 개인위키입니다.
 
-오픈나무는 파이썬 기반의 위키 엔진입니다. 파이썬과 그 의존성 모듈만 설치하면 사용할 수 있으며, 코드를 직접 수정하여 좀 더 주제에 특화된 위키를 만들 수 있습니다.
+### 모듈 설치
 
-SQLite로 작성된 DB파일에 모든 항목이 담겨있습니다.
+윈도우의 경우 다음 명령어로 openNAMU 실행에 필요한 모듈을 설치합니다.
+```
+pip install -r requirements.txt
+```
+리눅스 환경의 경우 다음 명령으로 실행해야 합니다.
+```
+pip3 install -r requirements.txt
+```
+
+### 애플리케이션 시작
+openNAMU를 시작합니다.
+```
+python app.py
+```
+리눅스 환경의 경우 다음 명령으로 실행해야 합니다.
+```
+python3 app.py
+```
+
+### DB파일
+
+SQLite로 작성된 .DB파일에 위키의 모든 항목이 담겨있습니다.
