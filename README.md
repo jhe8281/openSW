@@ -3,6 +3,10 @@
 [![Python 3.5 이상의 버전 필요](https://img.shields.io/badge/python-3.5%20or%20higher-blue.svg)](https://python.org)
 [![라이선스](https://img.shields.io/badge/license-BSD%203--Clause-lightgrey.svg)](./LICENSE)
 
+Author : 임지환, jhe8281@naver.com
+Supervisor : Na, In Seop, ypencil@hanmail.net
+Starting Project : 2019.1.4
+
 파이썬 기반의 위키엔진인 openNAMU (3.0.8-a) 로 구축된 개인위키입니다.
 
 ### 모듈 설치
